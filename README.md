@@ -1,162 +1,133 @@
-# iptv-vod
+<h1 align="center">iptv-vod</h1>
+<h3 align="center">The IPTV relay and web console, ready to deploy</h3>
 
-An IPTV relay with a web console, split into two repositories that this one pulls in as
-Git submodules:
+---
 
-| Path | Repository | Role |
-|---|---|---|
-| `submodules/iptv-rs/` | iptv-rs | Rust workspace; builds the `iptv-rs` binary. Parses and streams only. |
-| `submodules/iptv-web/` | iptv-web | React + TypeScript console (简体/繁體/English, senior mode). Presents only. |
-| `channels.yaml` | | Channel list, hot-reloaded by the relay. |
-| `Dockerfile`, `docker-compose.yml`, `docker/` | | Container images and compose profiles. |
-| `deploy/pm2/`, `deploy/nginx/` | | pm2 process file, host nginx reverse proxy. |
-| `scripts/` | | Build, local run and one-click scripts. |
+<p align="center">
+<img alt="iptv-vod" src="branding/banner.svg" width="560"/>
+<br/>
+<br/>
+<a href="https://github.com/hsuyelin/iptv-vod/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/hsuyelin/iptv-vod.svg"/></a>
+<a href="https://github.com/hsuyelin/iptv-vod/commits/main"><img alt="Last Commit" src="https://img.shields.io/github/last-commit/hsuyelin/iptv-vod.svg"/></a>
+<a href="http://t.me/iptvorganization"><img alt="Chat on Telegram" src="https://img.shields.io/badge/chat-telegram-26A5E4?logo=telegram&logoColor=white"/></a>
+<br/>
+<img alt="Rust" src="https://img.shields.io/badge/Rust-backend-DEA584?logo=rust&logoColor=white"/>
+<img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-frontend-3178C6?logo=typescript&logoColor=white"/>
+<img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black"/>
+<img alt="Docker" src="https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white"/>
+<img alt="Nginx" src="https://img.shields.io/badge/Nginx-proxy-009639?logo=nginx&logoColor=white"/>
+<img alt="PM2" src="https://img.shields.io/badge/PM2-process-2B037A?logo=pm2&logoColor=white"/>
+<img alt="English" src="https://img.shields.io/badge/lang-English-555"/>
+<img alt="简体中文" src="https://img.shields.io/badge/lang-简体中文-555"/>
+<img alt="繁體中文" src="https://img.shields.io/badge/lang-繁體中文-555"/>
+</p>
 
-The two sides meet only at the relay's HTTP routes: `/list.m3u`, `/live/{ch}.m3u8`,
-`/segment/{ch}/{id}.ts`, `/channels`, `/health`. The WASM assets in `submodules/iptv-rs/assets/` are
-loaded from disk and checked against `manifest.json` at start; nothing from the console is
-compiled into the binary.
+---
 
-## Get the code
+iptv-vod is an IPTV relay with a web console. It packages two projects as Git submodules and ships everything needed to run them: [iptv-rs](https://github.com/hsuyelin/iptv-rs), a Rust relay that parses and streams, and [iptv-web](https://github.com/hsuyelin/iptv-web), a React console that only presents. The two meet only at the relay's HTTP routes.
 
-```sh
+Run it with Docker, pm2, nginx or plain scripts. Add `/<key>` to the address to unlock the administrator tabs.
+
+<strong>Want to get started?</strong><br/>
+Jump to <a href="#quick-start">Quick Start</a>.<br/>
+
+<strong>Something not working right?</strong><br/>
+Open an <a href="https://github.com/hsuyelin/iptv-vod/issues">Issue</a> on GitHub.<br/>
+
+<strong>Want to contribute?</strong><br/>
+Read <a href="#development">Development</a>, then open a pull request. Commits follow <a href="https://www.conventionalcommits.org">Conventional Commits</a>.<br/>
+
+<strong>Questions or ideas?</strong><br/>
+Join the community on <a href="http://t.me/iptvorganization">Telegram</a>.<br/>
+
+---
+
+## Quick Start
+
+```bash
 git clone --recurse-submodules https://github.com/hsuyelin/iptv-vod.git
 cd iptv-vod
-# already cloned without submodules:
-git submodule update --init --recursive
+scripts/one-click.sh      # or: auto | docker | docker-nginx | pm2 | local
 ```
 
-### Update the submodules
+Open `http://127.0.0.1:8787/` (`:8080` for `docker-nginx`). The playlist for players is `http://<host>:8787/list.m3u`.
 
-The submodules always come from GitHub. After changing `iptv-rs` or `iptv-web`, push that
-repository first, then bring this one up to date:
+If you cloned without submodules, run `git submodule update --init --recursive`.
 
-```sh
-git submodule update --init --remote --merge   # newest main of each submodule
-git add submodules && git commit -m "chore: bump submodules"
-git push
-```
-
-## Run it
-
-The quickest way, which picks Docker, then pm2, then a plain foreground run:
-
-```sh
-scripts/one-click.sh            # or: auto | docker | docker-nginx | pm2 | local
-```
-
-Then open `http://127.0.0.1:8787/` (`:8080` for `docker-nginx`). Playlist for players:
-`http://<host>:8787/list.m3u`.
+## Deployment
 
 ### Docker
 
-```sh
-docker compose --profile single up -d --build   # relay + console on :8787
+```bash
+docker compose --profile single up -d --build   # relay and console on :8787
 docker compose --profile split  up -d --build   # nginx on :8080 in front of the relay
 ```
 
-`Dockerfile` has three targets: `all` (default, relay + console), `relay` (API only) and
-`web` (nginx with the console and the reverse proxy from `docker/nginx.conf`). Edit
-`channels.yaml` on the host; it is mounted read-only and reloaded without a restart. Set
-`PORT` / `WEB_PORT` to change the published ports.
+Edit `channels.yaml` on the host. It is mounted read-only and reloaded without a restart. Set `PORT` and `WEB_PORT` to change the published ports.
 
-### Local (no container)
+### Local
 
-Needs Rust 1.96+ and Node 20+ (Node 24 is used in the image).
+Requires Rust 1.96+ and Node.js 20+.
 
-```sh
-scripts/build.sh        # -> dist/bin/iptv-rs, dist/assets, dist/web
-scripts/run-local.sh    # cleans dist/, rebuilds, runs; HOST/PORT/CHANNELS override, SKIP_BUILD=1 reuses dist
+```bash
+scripts/build.sh        # builds dist/
+scripts/run-local.sh    # cleans, rebuilds and runs; SKIP_BUILD=1 reuses dist/
 ```
 
 ### pm2
 
-```sh
+```bash
 scripts/build.sh
 pm2 start deploy/pm2/ecosystem.config.cjs
-pm2 save && pm2 startup          # restart on reboot
+pm2 save && pm2 startup
 ```
 
-`HOST`, `PORT` and `CHANNELS` are read from the environment when pm2 starts. Remove the
-`--web-dir` argument in the file if nginx serves the console.
+### Nginx
 
-### Nginx in front of a host-run relay
+Run the relay on `127.0.0.1:8787`, copy `dist/web` to `/srv/iptv-vod/web`, install `deploy/nginx/iptv-vod.conf` as `/etc/nginx/conf.d/iptv-vod.conf`, then reload nginx. The config forwards `Host` and `X-Forwarded-*`, which the relay uses to write absolute segment URLs. Add TLS to the `server` block as usual.
 
-Run the relay bound to `127.0.0.1:8787` (pm2 or `run-local.sh`), copy `dist/web` to
-`/srv/iptv-vod/web`, install `deploy/nginx/iptv-vod.conf` as
-`/etc/nginx/conf.d/iptv-vod.conf`, then `nginx -t && nginx -s reload`. The config forwards
-`Host` and `X-Forwarded-*`, which the relay uses to write absolute segment URLs. Add TLS
-to the `server` block as usual (`X-Forwarded-Proto` follows `$scheme`).
+## Configuration
 
-## Relay options
-
-| Flag | Env | Default | Meaning |
+| Flag | Environment | Default | Meaning |
 |---|---|---|---|
-| `--host`, `--port` | | `127.0.0.1`, `8787` | listen address |
-| `--channels` | | `/app/channels.yaml` | channel list, reloaded when it changes |
+| `--host`, `--port` | | `127.0.0.1`, `8787` | Listen address (the scripts read `HOST`, `PORT`) |
+| `--channels` | | `/app/channels.yaml` | Channel list, reloaded on change (the scripts read `CHANNELS`) |
 | `--assets-dir` | `IPTV_ASSETS_DIR` | `./assets` | WASM assets, SHA-256 verified at start |
-| `--web-dir` | `IPTV_WEB_DIR` | off | serve a built console from this directory |
-| `-v`, `-vv` | `RUST_LOG` | info | log detail: `-v` adds debug, `-vv` adds trace; `RUST_LOG` overrides |
-| | `IPTV_ADMIN_KEY` | generated | administrator key, see below |
+| `--web-dir` | `IPTV_WEB_DIR` | off | Serve a built console from this directory |
+| `-v`, `-vv` | `RUST_LOG` | `info` | Log detail |
+| | `IPTV_ADMIN_KEY` | generated | Administrator key |
 
-The relay refuses to start if the channel file has no valid channel or an asset does not
-match `manifest.json`. A full work queue for a channel answers `429` with `Retry-After`.
+### Administrator Mode
 
-## Administrator mode
+A standard visit shows the channel list only. Open `http://host:8787/<key>` to reveal the **Channels** and **Dashboard** tabs.
 
-A standard visit shows the channel list and nothing else: no page tabs. Add the
-administrator key to the address (`http://host:8787/<key>`) and the **Channels** and
-**Dashboard** tabs appear; opening the plain address again returns to a standard visit.
+- Set the key with `IPTV_ADMIN_KEY` (12 or more letters, digits, `-` or `_`). If it is unset, a 32-character key is generated at every start and printed once to standard error. Set the variable for managed deployments, since `docker compose logs` and `pm2 logs` keep the terminal output.
+- After 5 wrong keys a client is locked out for 15 minutes, doubling up to a day. 60 wrong keys from anyone within 10 minutes lock all attempts for 10 minutes.
+- The key is part of the address and lands in browser history. The relay and the bundled nginx configs keep such addresses out of their logs.
 
-- **Choose the key** with the environment variable `IPTV_ADMIN_KEY` (12 or more letters,
-  digits, `-` or `_`). If it is not set, the relay generates a 32-character key on every
-  start and prints it once to the terminal (standard error), together with the address to
-  open. The generated key is not written through the log, but anything that collects the
-  terminal output (`docker compose logs`, `pm2 logs`) will hold it, so set the variable for
-  managed deployments.
-- **Guessing is limited.** The console posts the key to `POST /admin/verify` once per
-  visit. After 5 wrong keys a client is locked out for 15 minutes, twice as long each time
-  up to a day; 60 wrong keys from anyone within 10 minutes lock everything for 10 minutes.
-  While a lock is active every attempt is refused, even with the right key. Wrong keys are
-  answered after a short pause, the check is constant-time, and the nginx configs add a
-  rate limit of one check per second per client. Behind a proxy on the same machine or
-  network the client address is the one the proxy appended to `X-Forwarded-For`.
-- **The key is in the address**, so it lands in the browser history. The relay and the
-  bundled nginx configs keep such addresses out of their logs; other proxies you add may
-  not. `/health`, `/channels` and the playlists stay public, as before.
+### Logs
 
-## Logs
-
-The relay logs with `tracing` to standard error. Every line has the time (UTC, to the
-microsecond), the level, the thread, the module, the source file and line, the message and
-its fields, for example:
+The relay logs with `tracing` to standard error: time (UTC), level, thread, module, source file and line, message and fields.
 
 ```
-2026-10-09T08:05:36.103794Z  WARN tokio-rt-worker iptv_server::app: crates/iptv-server/src/app.rs:205: request rejected id=2 method=POST path=/admin/verify route="/admin/verify" status=403 elapsed_ms=302 client=127.0.0.1
+2026-10-09T08:05:36.103794Z  WARN tokio-rt-worker iptv_server::app: crates/iptv-server/src/app.rs:205: request rejected id=2 method=POST path=/admin/verify status=403 elapsed_ms=302
 ```
 
-By default the relay's own crates log at `info` and everything else at `warn`. For
-troubleshooting run with `-v` (debug: upstream fetches and timings, playlist windows,
-cache decisions, queue waits, asset checks) or `-vv` (trace), or set `RUST_LOG`, for
-example `RUST_LOG=iptv_upstream=trace,warn`. One line is logged per request; a console
-address (which may hold the key) is shown as `<static>`. A panic is logged with its
-location and a backtrace. Keys, tokens and guesses are never logged.
+Run with `-v` for debug, `-vv` for trace, or set `RUST_LOG`, for example `RUST_LOG=iptv_upstream=trace,warn`. Keys, tokens and guesses are never logged.
 
-## Develop
+## Development
 
-```sh
+```bash
+git submodule update --init --remote --merge   # newest main of each submodule
+
 cd submodules/iptv-rs  && just all    # fmt, clippy, test, doc, deps, names, cargo-deny
 cd submodules/iptv-web && just all    # lint, typecheck, test, build, names
 ```
 
-Install the tools with `brew install just cargo-deny` (or `cargo install just cargo-deny`).
-Benchmarks: `cd submodules/iptv-rs && just bench`. Commits follow Conventional Commits.
+Install the tools with `brew install just cargo-deny`. After changing a submodule, push it first, then commit the bumped pointers here.
 
 ## Acknowledgements
 
-Thanks to the community around the original relay project and its authors, whose work on
-the upstream protocol this code builds on. Questions and discussion happen in their
-Telegram group: <http://t.me/iptvorganization>.
+Thanks to the community and the authors of the original relay project, whose work on the upstream protocol this code builds on. Join the discussion in the Telegram group: <http://t.me/iptvorganization>.
 
-Thanks also to the maintainers of axum, tokio, wasmtime, React, Vite, TanStack Query,
-hls.js and the other open-source projects used here.
+Thanks also to the maintainers of axum, tokio, wasmtime, React, Vite, TanStack Query, hls.js and the other open-source projects used here.
