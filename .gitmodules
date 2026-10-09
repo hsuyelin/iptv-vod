@@ -1,0 +1,6 @@
+[submodule "iptv-rs"]
+	path = iptv-rs
+	url = https://github.com/hsuyelin/iptv-rs.git
+[submodule "iptv-web"]
+	path = iptv-web
+	url = https://github.com/hsuyelin/iptv-web.git

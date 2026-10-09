@@ -1,0 +1,28 @@
+# docker compose --profile single up -d --build   # relay + console on :8787
+# docker compose --profile split  up -d --build   # nginx on :8080 in front of the relay
+x-channels: &channels ./channels.yaml:/app/channels.yaml:ro
+
+services:
+  iptv:
+    profiles: [single]
+    build: { context: ., target: all }
+    image: iptv-vod
+    ports: ["${PORT:-8787}:8787"]
+    volumes: [*channels]
+    restart: unless-stopped
+
+  relay:
+    profiles: [split]
+    build: { context: ., target: relay }
+    image: iptv-vod-relay
+    expose: ["8787"]
+    volumes: [*channels]
+    restart: unless-stopped
+
+  web:
+    profiles: [split]
+    build: { context: ., target: web }
+    image: iptv-vod-web
+    ports: ["${WEB_PORT:-8080}:80"]
+    depends_on: [relay]
+    restart: unless-stopped
