@@ -26,7 +26,7 @@ RUN cargo build --release --locked -p iptv-server
 # loader it needs, CA certificates, a minimal name-service configuration, the WASM assets
 # and the channel list. Assets stay outside the binary and are verified at start.
 # A static ffmpeg: no libraries to copy, nothing to install, and it runs from `scratch`.
-FROM mwader/static-ffmpeg:7.1.1 AS ffmpeg
+FROM mwader/static-ffmpeg:9.0.2 AS ffmpeg
 
 FROM relay-build AS rootfs
 COPY channels.yaml /root-fs/app/channels.yaml
