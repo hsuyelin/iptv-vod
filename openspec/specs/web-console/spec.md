@@ -181,3 +181,32 @@ placeholder icon instead of a broken-image mark.
 #### Scenario: Failed logo
 - **WHEN** a channel logo cannot be loaded
 - **THEN** the channel tile shows the placeholder icon in its place
+
+### Requirement: Administrator-only tabs
+The page tabs (Channels and Dashboard) SHALL be shown only in administrator mode, which is
+a visit whose address is `/<key>` for a key the relay accepts. The console SHALL check the
+key once per visit, never retry a refused, locked or failed check, and keep nothing
+afterwards. A standard visit SHALL show no tab, and asking for `#/dashboard` there SHALL
+show the channels.
+
+#### Scenario: Standard visit
+- **WHEN** the console is opened at the plain address
+- **THEN** no tab is shown, the channel list is, and the brand, status and controls keep
+  their places, the controls at the right edge
+
+#### Scenario: Administrator visit
+- **WHEN** the console is opened at `/<key>` with the right key
+- **THEN** the Channels and Dashboard tabs appear and nothing else in the bar moves
+
+#### Scenario: Wrong or locked key
+- **WHEN** the relay answers 403 or 429 for the key in the address
+- **THEN** the visit stays standard and the key is not sent again
+
+### Requirement: Relay status indicator
+The relay's state SHALL be shown as a green, red or amber dot with one word: Online,
+Offline or Checking, in the chosen language. The full sentence, including the time of the
+last reading when offline, SHALL be the indicator's accessible name and tooltip.
+
+#### Scenario: Offline
+- **WHEN** the latest health request failed
+- **THEN** a red dot and the word Offline are shown

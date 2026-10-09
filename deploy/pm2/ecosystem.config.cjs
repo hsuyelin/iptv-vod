@@ -18,6 +18,9 @@ module.exports = {
         // Drop the next line when nginx serves the console.
         '--web-dir', path.join(root, 'dist', 'web'),
       ],
+      // Choose the administrator key with IPTV_ADMIN_KEY. Without it the relay makes up a
+      // new one on every start and prints it to its log (pm2 logs iptv-rs).
+      env: process.env.IPTV_ADMIN_KEY ? { IPTV_ADMIN_KEY: process.env.IPTV_ADMIN_KEY } : {},
       autorestart: true,
       max_restarts: 20,
       restart_delay: 2000,

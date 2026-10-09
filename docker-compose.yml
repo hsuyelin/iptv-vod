@@ -1,5 +1,7 @@
 # docker compose --profile single up -d --build   # relay + console on :8787
 # docker compose --profile split  up -d --build   # nginx on :8080 in front of the relay
+# Set IPTV_ADMIN_KEY (12+ letters, digits, - or _) to choose the administrator key; without it
+# the relay generates one and prints it to its log (docker compose logs).
 x-channels: &channels ./channels.yaml:/app/channels.yaml:ro
 
 services:
@@ -9,6 +11,8 @@ services:
     image: iptv-vod
     ports: ["${PORT:-8787}:8787"]
     volumes: [*channels]
+    environment:
+      IPTV_ADMIN_KEY: ${IPTV_ADMIN_KEY:-}
     restart: unless-stopped
 
   relay:
@@ -17,6 +21,8 @@ services:
     image: iptv-vod-relay
     expose: ["8787"]
     volumes: [*channels]
+    environment:
+      IPTV_ADMIN_KEY: ${IPTV_ADMIN_KEY:-}
     restart: unless-stopped
 
   web:
