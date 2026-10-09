@@ -6,7 +6,7 @@
 
 FROM node:24-bookworm-slim AS web-build
 WORKDIR /web
-COPY submodules/iptv-web/package.json iptv-web/package-lock.json ./
+COPY submodules/iptv-web/package.json submodules/iptv-web/package-lock.json ./
 RUN npm ci
 COPY submodules/iptv-web/ ./
 RUN npm run build
