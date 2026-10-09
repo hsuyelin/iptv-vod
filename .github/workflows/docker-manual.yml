@@ -1,0 +1,30 @@
+name: Docker (manual)
+
+# Run it from the Actions tab to build, and optionally push, the image without a tag.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag to publish, besides the commit hash
+        type: string
+        default: edge
+      push:
+        description: Push the image to Docker Hub (off builds only)
+        type: boolean
+        default: true
+      retention-days:
+        description: Days to keep the build artifacts
+        type: number
+        default: 60
+
+permissions:
+  contents: read
+
+jobs:
+  docker:
+    uses: ./.github/workflows/docker.yml
+    secrets: inherit
+    with:
+      tag: ${{ inputs.tag }}
+      push: ${{ inputs.push }}
+      retention-days: ${{ inputs.retention-days }}

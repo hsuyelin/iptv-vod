@@ -1,0 +1,61 @@
+name: Docker (verify)
+
+# Run it from the Actions tab to check that the image builds and starts on amd64 and arm64.
+# Nothing is pushed, no Docker Hub settings are needed and no artifacts are kept.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { platform: linux/amd64, runner: ubuntu-latest }
+          - { platform: linux/arm64, runner: ubuntu-24.04-arm }
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: docker/setup-buildx-action@v3
+      # Reuses the cache written by the Docker workflow, but never writes one.
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: all
+          platforms: ${{ matrix.platform }}
+          provenance: false
+          load: true
+          tags: iptv-vod:verify
+          cache-from: type=gha,scope=${{ matrix.platform }}
+      - name: Start
+        run: |
+          docker run -d --name iptv --read-only --tmpfs /tmp --cap-drop ALL \
+            --security-opt no-new-privileges:true -p 8787:8787 iptv-vod:verify
+      - name: Health check
+        run: |
+          for _ in $(seq 1 30); do
+            docker exec iptv /app/iptv-rs --healthcheck && exit 0
+            sleep 2
+          done
+          echo "::error::the container did not become healthy"
+          exit 1
+      - name: Playlist
+        run: curl --fail --silent --show-error --max-time 10 http://127.0.0.1:8787/list.m3u | head -n 3
+      - name: Logs
+        if: failure()
+        run: docker logs iptv
+      - name: Image size and layers
+        if: always()
+        run: |
+          docker image inspect iptv-vod:verify --format 'size: {{.Size}} bytes, layers: {{len .RootFS.Layers}}'

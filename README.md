@@ -9,17 +9,11 @@
 <br/>
 <a href="https://github.com/hsuyelin/iptv-vod/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/hsuyelin/iptv-vod.svg"/></a>
 <a href="https://github.com/hsuyelin/iptv-vod/commits/main"><img alt="Last Commit" src="https://img.shields.io/github/last-commit/hsuyelin/iptv-vod.svg"/></a>
-<a href="http://t.me/iptvorganization"><img alt="Chat on Telegram" src="https://img.shields.io/badge/chat-telegram-26A5E4?logo=telegram&logoColor=white"/></a>
 <br/>
 <img alt="Rust" src="https://img.shields.io/badge/Rust-backend-DEA584?logo=rust&logoColor=white"/>
 <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-frontend-3178C6?logo=typescript&logoColor=white"/>
 <img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black"/>
 <img alt="Docker" src="https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white"/>
-<img alt="Nginx" src="https://img.shields.io/badge/Nginx-proxy-009639?logo=nginx&logoColor=white"/>
-<img alt="PM2" src="https://img.shields.io/badge/PM2-process-2B037A?logo=pm2&logoColor=white"/>
-<img alt="English" src="https://img.shields.io/badge/lang-English-555"/>
-<img alt="简体中文" src="https://img.shields.io/badge/lang-简体中文-555"/>
-<img alt="繁體中文" src="https://img.shields.io/badge/lang-繁體中文-555"/>
 </p>
 
 ---
@@ -58,12 +52,19 @@ If you cloned without submodules, run `git submodule update --init --recursive`.
 
 ### Docker
 
+Run the published multi-architecture image (`linux/amd64`, `linux/arm64`):
+
 ```bash
-docker compose --profile single up -d --build   # relay and console on :8787
-docker compose --profile split  up -d --build   # nginx on :8080 in front of the relay
+cp .env.example .env     # set IPTV_IMAGE, IPTV_ADMIN_KEY and the rest
+docker compose up -d
 ```
 
-Edit `channels.yaml` on the host. It is mounted read-only and reloaded without a restart. Set `PORT` and `WEB_PORT` to change the published ports.
+Edit `channels.yaml` on the host. It is mounted read-only and reloaded without a restart. To build from source instead:
+
+```bash
+docker compose -f docker-compose.build.yml --profile single up -d --build   # relay and console on :8787
+docker compose -f docker-compose.build.yml --profile split  up -d --build   # nginx on :8080 in front of the relay
+```
 
 ### Local
 
@@ -85,6 +86,19 @@ pm2 save && pm2 startup
 ### Nginx
 
 Run the relay on `127.0.0.1:8787`, copy `dist/web` to `/srv/iptv-vod/web`, install `deploy/nginx/iptv-vod.conf` as `/etc/nginx/conf.d/iptv-vod.conf`, then reload nginx. The config forwards `Host` and `X-Forwarded-*`, which the relay uses to write absolute segment URLs. Add TLS to the `server` block as usual.
+
+## Releases
+
+Pushing a tag such as `v1.0.0` starts two workflows. Both build on amd64 and arm64 runners in parallel and keep their build artifacts for 60 days.
+
+| Workflow | Result |
+|---|---|
+| `build-binaries.yml` | Linux and macOS packages (relay, WASM assets and console) on a GitHub release, with `SHA256SUMS` |
+| `docker.yml` | `<DOCKER_USERNAME>/<DOCKER_IMAGENAME>` on Docker Hub as one multi-architecture tag (`x.y.z`, `x.y`, `latest`) |
+
+`docker-manual.yml` builds the image on demand from the Actions tab, with an optional tag and an option to skip the push. Set the repository secrets `DOCKER_USERNAME` and `DOCKER_PASSWORD` (an access token works) and `DOCKER_IMAGENAME` as a variable or a secret.
+
+`docker-verify.yml` only checks the image: from the Actions tab it builds, starts and health-checks the container on amd64 and arm64. It pushes nothing, needs no Docker Hub settings and keeps no artifacts.
 
 ## Configuration
 
