@@ -65,6 +65,7 @@ CMD ["--host", "0.0.0.0", "--port", "8787", "--channels", "/app/channels.yaml", 
 # Console behind nginx, which also proxies the relay routes to the `relay` host.
 FROM nginx:1.29-alpine AS web
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/nginx-routes.conf /etc/nginx/iptv-routes.conf
 COPY --from=web-build /web/dist /usr/share/nginx/html
 EXPOSE 80
 
