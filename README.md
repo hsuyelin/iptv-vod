@@ -68,10 +68,11 @@ Open `http://127.0.0.1:8787/`. The playlist for players is `http://<host>:8787/l
 | `RESTART_POLICY` | `unless-stopped` | Docker restart policy |
 | `NOFILE_LIMIT` | `65536` | Open file limit |
 | `TZ` | `Asia/Shanghai` | Time zone |
-| `SERVICE_NETWORK_NAME` | `iptv_net` | Docker network name |
+| `SERVICE_NETWORK_NAME` | `service_net` | Name of an existing Docker network (created beforehand, for example with `docker network create --subnet 172.28.0.0/16 service_net`) |
+| `IPTV_IPV4_ADDRESS` | `172.28.0.50` | Fixed address of the container on that network |
 | `BIND_HOST` | `127.0.0.1` | Address to publish on; use `0.0.0.0` to reach it from other machines |
 | `IPTV_HOST_PORT` | `8787` | Published port |
-| `IPTV_CHANNELS_FILE` | `./app/channels.yaml` | Channel list on the host |
+| `IPTV_CHANNELS_FILE` | `./mounts/data/app/channels.yaml` | Channel list on the host |
 | `IPTV_ADMIN_KEY` | empty | Administrator key; if empty, one is generated at every start and printed in `docker compose logs` |
 | `IPTV_COMPAT` | `on` | Lighter stream for iOS before 16 (needs the ffmpeg the image carries); `off` switches it off |
 | `RUST_LOG` | `info` | Log filter, such as `debug` or `iptv_upstream=trace,warn` |

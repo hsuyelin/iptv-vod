@@ -51,8 +51,10 @@ services:
                 max-file: "${LOG_MAX_FILE}"
 
         networks:
-            - service_net
+            service_net:
+                ipv4_address: ${IPTV_IPV4_ADDRESS}
 
 networks:
     service_net:
         name: "${SERVICE_NETWORK_NAME}"
+        external: true
