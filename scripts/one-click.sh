@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # One command to get running: scripts/one-click.sh [auto|docker|docker-nginx|pm2|local]
+# `local` takes the options of run-local.sh, such as: scripts/one-click.sh local --compat
 # auto prefers Docker, then pm2, then a foreground local run.
 set -euo pipefail
 . "$(dirname "$0")/_common.sh"
@@ -30,7 +31,7 @@ case "$mode" in
     pm2 start "$ROOT/deploy/pm2/ecosystem.config.cjs"
     echo "console: http://$HOST:$PORT/   (pm2 save && pm2 startup to survive reboots)" ;;
   local)
-    exec "$ROOT/scripts/run-local.sh" ;;
+    exec "$ROOT/scripts/run-local.sh" "${@:2}" ;;
   *)
     echo "usage: $0 [auto|docker|docker-nginx|pm2|local]" >&2; exit 2 ;;
 esac

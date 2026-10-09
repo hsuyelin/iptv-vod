@@ -3,6 +3,7 @@
 #   docker build --target all   -t iptv-vod       .   # relay + console in one image (default)
 #   docker build --target relay -t iptv-vod-relay .   # relay only
 #   docker build --target web   -t iptv-vod-web   .   # nginx: console + reverse proxy
+#   docker build --target compat -t iptv-vod-compat .  # like `all`, plus ffmpeg for ?profile=compat
 
 FROM node:24-bookworm-slim AS web-build
 WORKDIR /web
@@ -62,6 +63,19 @@ EXPOSE 80
 # Relay serving the console itself (default target).
 FROM scratch AS all
 COPY --from=rootfs-all /root-fs /
+EXPOSE 8787
+ENTRYPOINT ["/app/iptv-rs"]
+CMD ["--host", "0.0.0.0", "--port", "8787", "--channels", "/app/channels.yaml", "--assets-dir", "/app/assets", "--web-dir", "/app/web"]
+
+# Like `all`, plus a static ffmpeg, so that `?profile=compat` can serve old Apple devices a
+# lighter stream (720p Main profile, no B-frames, a keyframe at least every 2 s). The ffmpeg
+# build includes libx264, which is GPL: use this image only where that suits you.
+FROM mwader/static-ffmpeg:7.1.1 AS ffmpeg
+
+FROM scratch AS compat
+COPY --from=rootfs-all /root-fs /
+COPY --from=ffmpeg /ffmpeg /app/ffmpeg
+ENV IPTV_COMPAT_FFMPEG=/app/ffmpeg
 EXPOSE 8787
 ENTRYPOINT ["/app/iptv-rs"]
 CMD ["--host", "0.0.0.0", "--port", "8787", "--channels", "/app/channels.yaml", "--assets-dir", "/app/assets", "--web-dir", "/app/web"]

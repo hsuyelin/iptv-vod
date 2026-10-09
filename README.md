@@ -88,6 +88,16 @@ Open `http://127.0.0.1:8787/`. The playlist for players is `http://<host>:8787/l
 | `-v`, `-vv` | `RUST_LOG` | `info` | Log detail |
 | | `IPTV_ADMIN_KEY` | generated | Administrator key |
 
+### Old iPhones and iPads
+
+The normal stream is 1080p with B-frames, which some older Apple devices play as a slideshow with sound, or not at all. The `compat` image adds ffmpeg and serves a lighter stream (720p, no B-frames, a keyframe every 2 seconds) to iOS before 16 automatically:
+
+```bash
+docker compose -f docker-compose.build.yml --profile compat up -d --build
+```
+
+To try it on one device first, open `http://<host>:8787/?compat=1`; `?compat=0` turns it off again. The image includes an ffmpeg with libx264, which is GPL licensed. A binary run can use any ffmpeg with libx264: start it with `--compat-ffmpeg /path/to/ffmpeg`.
+
 ### Administrator mode
 
 A standard visit shows the channel list only. Open `http://host:8787/<key>` to reveal the **Channels** and **Dashboard** tabs. The key needs 12 or more letters, digits, `-` or `_`. After 5 wrong keys a client is locked out for 15 minutes, and the lockout grows up to a day.
