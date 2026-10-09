@@ -13,6 +13,7 @@
 # Local state and secrets
 .env
 .env.*
+certs
 dist
 openspec
 

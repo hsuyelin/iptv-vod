@@ -18,8 +18,12 @@ case "$mode" in
     docker compose -f docker-compose.build.yml --profile single up -d --build
     echo "console: http://127.0.0.1:${PORT}/" ;;
   docker-nginx)
+    # nginx also listens on HTTPS and needs a certificate; make a self-signed one to start with.
+    if [ ! -f certs/fullchain.pem ] || [ ! -f certs/privkey.pem ]; then
+      scripts/self-signed-cert.sh
+    fi
     docker compose -f docker-compose.build.yml --profile split up -d --build
-    echo "console: http://127.0.0.1:${WEB_PORT:-8080}/" ;;
+    echo "console: http://127.0.0.1:${WEB_PORT:-8080}/  https://127.0.0.1:${WEB_HTTPS_PORT:-8443}/" ;;
   pm2)
     need pm2
     "$ROOT/scripts/build.sh"
