@@ -71,7 +71,7 @@ Needs Rust 1.96+ and Node 20+ (Node 24 is used in the image).
 
 ```sh
 scripts/build.sh        # -> dist/bin/iptv-rs, dist/assets, dist/web
-scripts/run-local.sh    # HOST=0.0.0.0 PORT=8787 CHANNELS=/path/channels.yaml to override
+scripts/run-local.sh    # cleans dist/, rebuilds, runs; HOST/PORT/CHANNELS override, SKIP_BUILD=1 reuses dist
 ```
 
 ### pm2
