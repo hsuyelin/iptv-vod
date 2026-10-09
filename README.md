@@ -5,8 +5,8 @@ Git submodules:
 
 | Path | Repository | Role |
 |---|---|---|
-| `iptv-rs/` | iptv-rs | Rust workspace; builds the `iptv-rs` binary. Parses and streams only. |
-| `iptv-web/` | iptv-web | React + TypeScript console. Presents only. |
+| `submodules/iptv-rs/` | iptv-rs | Rust workspace; builds the `iptv-rs` binary. Parses and streams only. |
+| `submodules/iptv-web/` | iptv-web | React + TypeScript console. Presents only. |
 | `channels.yaml` | | Channel list, hot-reloaded by the relay. |
 | `Dockerfile`, `docker-compose.yml`, `docker/` | | Container images and compose profiles. |
 | `deploy/pm2/`, `deploy/nginx/` | | pm2 process file, host nginx reverse proxy. |
@@ -14,7 +14,7 @@ Git submodules:
 | `openspec/` | | Boundary constraints and change history. |
 
 The two sides meet only at the relay's HTTP routes: `/list.m3u`, `/live/{ch}.m3u8`,
-`/segment/{ch}/{id}.ts`, `/channels`, `/health`. The WASM assets in `iptv-rs/assets/` are
+`/segment/{ch}/{id}.ts`, `/channels`, `/health`. The WASM assets in `submodules/iptv-rs/assets/` are
 loaded from disk and checked against `manifest.json` at start; nothing from the console is
 compiled into the binary.
 
@@ -109,12 +109,12 @@ match `manifest.json`. A full work queue for a channel answers `429` with `Retry
 ## Develop
 
 ```sh
-cd iptv-rs  && just all    # fmt, clippy, test, doc, deps, names, cargo-deny
-cd iptv-web && just all    # lint, typecheck, test, build, names
+cd submodules/iptv-rs  && just all    # fmt, clippy, test, doc, deps, names, cargo-deny
+cd submodules/iptv-web && just all    # lint, typecheck, test, build, names
 ```
 
 Install the tools with `brew install just cargo-deny` (or `cargo install just cargo-deny`).
-Benchmarks: `cd iptv-rs && just bench`. Commits follow Conventional Commits.
+Benchmarks: `cd submodules/iptv-rs && just bench`. Commits follow Conventional Commits.
 
 ## Acknowledgements
 

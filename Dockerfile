@@ -6,16 +6,16 @@
 
 FROM node:24-bookworm-slim AS web-build
 WORKDIR /web
-COPY iptv-web/package.json iptv-web/package-lock.json ./
+COPY submodules/iptv-web/package.json iptv-web/package-lock.json ./
 RUN npm ci
-COPY iptv-web/ ./
+COPY submodules/iptv-web/ ./
 RUN npm run build
 
 FROM rust:1.96-bookworm AS relay-build
 # Use the image's own toolchain instead of the `stable` channel in rust-toolchain.toml.
 ENV RUSTUP_TOOLCHAIN=1.96.0
 WORKDIR /src
-COPY iptv-rs/ ./
+COPY submodules/iptv-rs/ ./
 RUN cargo build --release --locked -p iptv-server
 
 # The relay image is `scratch`: copy the binary with the shared libraries and loader it
@@ -51,7 +51,7 @@ RUN set -eux; \
 FROM scratch AS relay
 COPY --from=relay-root /root-fs /
 COPY channels.yaml /app/channels.yaml
-COPY iptv-rs/assets /app/assets
+COPY submodules/iptv-rs/assets /app/assets
 WORKDIR /app
 EXPOSE 8787
 ENTRYPOINT ["/app/iptv-rs"]

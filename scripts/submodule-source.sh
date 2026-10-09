@@ -34,7 +34,9 @@ case "$mode" in
     done
     # `sync` copies the URLs from .gitmodules, so the override comes after it.
     git submodule sync --quiet
-    for m in "${modules[@]}"; do git config "submodule.$m.url" "../$m"; done
+    for m in "${modules[@]}"; do
+      git config "submodule.$m.url" "$(cd "$ROOT/../$m" && pwd)"
+    done
     ;;
   remote)
     git submodule sync --quiet ;;
@@ -43,8 +45,8 @@ esac
 
 # Point each submodule's own `origin` at the new source so later pulls follow it.
 for m in "${modules[@]}"; do
-  if [ -e "$ROOT/$m/.git" ]; then
-    git -C "$ROOT/$m" remote set-url origin "$(git config --get "submodule.$m.url")"
+  if [ -e "$ROOT/submodules/$m/.git" ]; then
+    git -C "$ROOT/submodules/$m" remote set-url origin "$(git config --get "submodule.$m.url")"
   fi
 done
 if [ "$pull" = "--pull" ]; then

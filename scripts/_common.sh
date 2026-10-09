@@ -8,7 +8,7 @@ CHANNELS="${CHANNELS:-$ROOT/channels.yaml}"
 need() { command -v "$1" >/dev/null 2>&1 || { echo "missing required tool: $1" >&2; exit 1; }; }
 
 init_submodules() {
-  if [ ! -f "$ROOT/iptv-rs/Cargo.toml" ] || [ ! -f "$ROOT/iptv-web/package.json" ]; then
+  if [ ! -f "$ROOT/submodules/iptv-rs/Cargo.toml" ] || [ ! -f "$ROOT/submodules/iptv-web/package.json" ]; then
     need git
     git -C "$ROOT" submodule update --init --recursive
   fi
