@@ -27,6 +27,21 @@ cd iptv-vod
 git submodule update --init --recursive
 ```
 
+### Work without a remote
+
+Keep `iptv-rs` and `iptv-web` checked out next to this repository and point the
+submodules at them:
+
+```sh
+scripts/submodule-source.sh local --pull    # use ../iptv-rs and ../iptv-web
+scripts/submodule-source.sh remote --pull   # back to the URLs in .gitmodules
+scripts/submodule-source.sh status
+```
+
+Only `.git/config` changes; `.gitmodules` stays as committed. `--pull` also moves the
+submodules to the newest commit of the chosen source (commit in the sibling repository
+first; uncommitted changes are not picked up).
+
 ## Run it
 
 The quickest way, which picks Docker, then pm2, then a plain foreground run:
