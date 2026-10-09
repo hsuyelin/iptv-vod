@@ -71,7 +71,7 @@ Open `http://127.0.0.1:8787/`. The playlist for players is `http://<host>:8787/l
 | `SERVICE_NETWORK_NAME` | `iptv_net` | Docker network name |
 | `BIND_HOST` | `127.0.0.1` | Address to publish on; use `0.0.0.0` to reach it from other machines |
 | `IPTV_HOST_PORT` | `8787` | Published port |
-| `IPTV_CHANNELS_FILE` | `./channels.yaml` | Channel list on the host |
+| `IPTV_CHANNELS_FILE` | `./app/channels.yaml` | Channel list on the host |
 | `IPTV_ADMIN_KEY` | empty | Administrator key; if empty, one is generated at every start and printed in `docker compose logs` |
 | `RUST_LOG` | `info` | Log filter, such as `debug` or `iptv_upstream=trace,warn` |
 | `IPTV_HEALTH_INTERVAL`, `IPTV_HEALTH_TIMEOUT`, `IPTV_HEALTH_RETRIES`, `IPTV_HEALTH_START_PERIOD` | `30s`, `5s`, `3`, `15s` | Health check timing |
