@@ -6,7 +6,7 @@ Git submodules:
 | Path | Repository | Role |
 |---|---|---|
 | `submodules/iptv-rs/` | iptv-rs | Rust workspace; builds the `iptv-rs` binary. Parses and streams only. |
-| `submodules/iptv-web/` | iptv-web | React + TypeScript console. Presents only. |
+| `submodules/iptv-web/` | iptv-web | React + TypeScript console (简体/繁體/English, senior mode). Presents only. |
 | `channels.yaml` | | Channel list, hot-reloaded by the relay. |
 | `Dockerfile`, `docker-compose.yml`, `docker/` | | Container images and compose profiles. |
 | `deploy/pm2/`, `deploy/nginx/` | | pm2 process file, host nginx reverse proxy. |

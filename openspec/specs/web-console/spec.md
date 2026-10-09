@@ -74,3 +74,36 @@ imperative surface is the hook that attaches the HLS engine to the `<video>` ele
 - **WHEN** the lint step runs
 - **THEN** it fails on `document.querySelector`, `getElementById`, `innerHTML` and
   `appendChild` outside the player hook
+
+### Requirement: Languages
+The console SHALL be available in Simplified Chinese (`zh-CN`), Traditional Chinese
+(`zh-TW`) and English (`en`). The first visit SHALL follow the browser's language (any
+`zh` tag with a Hant script or the TW, HK or MO region maps to `zh-TW`, other `zh` tags to
+`zh-CN`, everything else to `en`); an explicit choice SHALL be kept across visits. Every
+message key SHALL exist in all three languages with the same placeholders.
+
+#### Scenario: Switch language
+- **WHEN** the user picks 繁體中文
+- **THEN** all console text, the document language and number formats change at once,
+  with no reload, and the choice is remembered
+
+### Requirement: Senior mode
+The console SHALL offer a senior mode that enlarges type and controls and lists channels
+in one large column with plain labels instead of swipeable rows. The choice SHALL be
+remembered, and the chip filters SHALL wrap instead of scrolling sideways.
+
+#### Scenario: Toggle
+- **WHEN** the user turns senior mode on
+- **THEN** the same channels are shown as list lines, the selected one labelled as on air
+
+### Requirement: Calm dark appearance and responsive layout
+The console SHALL use a dark theme whose accent is a softened red (saturation at most 70%)
+with white text on it meeting WCAG AA, glass-like translucent surfaces and rounded
+corners. The layout SHALL work from 360 px phones to wide desktops: the page SHALL NOT
+scroll sideways and no control SHALL be covered by another element.
+
+#### Scenario: Layout check
+- **WHEN** the Playwright layout check runs at phone, tablet and desktop sizes in each
+  language and in senior mode
+- **THEN** it reports no sideways page overflow, no control outside the viewport and no
+  control covered by another element
