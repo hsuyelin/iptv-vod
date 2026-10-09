@@ -1,8 +1,36 @@
+# Version control, editors and agent files
 .git
+.github
+.gitignore
+.gitmodules
 .agents
-openspec
+.codegraph
+.DS_Store
+**/.git
+**/.DS_Store
+**/.agents
+
+# Local state and secrets
+.env
+.env.*
 dist
+openspec
+
+# Documentation and branding
+README.md
+**/README.md
+branding
+**/branding
+
+# Deployment files that are not part of an image
+Dockerfile
+.dockerignore
+docker-compose*.yml
+deploy
+scripts
+
+# Build output, dependencies and tests of the submodules
 **/target
 **/node_modules
 **/dist
-**/.DS_Store
+submodules/iptv-web/e2e
