@@ -27,20 +27,16 @@ cd iptv-vod
 git submodule update --init --recursive
 ```
 
-### Work without a remote
+### Update the submodules
 
-Keep `iptv-rs` and `iptv-web` checked out next to this repository and point the
-submodules at them:
+The submodules always come from GitHub. After changing `iptv-rs` or `iptv-web`, push that
+repository first, then bring this one up to date:
 
 ```sh
-scripts/submodule-source.sh local --pull    # use ../iptv-rs and ../iptv-web
-scripts/submodule-source.sh remote --pull   # back to the URLs in .gitmodules
-scripts/submodule-source.sh status
+git submodule update --init --remote --merge   # newest main of each submodule
+git add submodules && git commit -m "chore: bump submodules"
+git push
 ```
-
-Only `.git/config` changes; `.gitmodules` stays as committed. `--pull` also moves the
-submodules to the newest commit of the chosen source (commit in the sibling repository
-first; uncommitted changes are not picked up).
 
 ## Run it
 
