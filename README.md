@@ -18,18 +18,13 @@
 
 ---
 
-iptv-vod is an IPTV relay with a web console. It packages two projects as Git submodules and ships everything needed to run them: [iptv-rs](https://github.com/hsuyelin/iptv-rs), a Rust relay that parses and streams, and [iptv-web](https://github.com/hsuyelin/iptv-web), a React console that only presents. The two meet only at the relay's HTTP routes.
-
-Run it with Docker, pm2, nginx or plain scripts. Add `/<key>` to the address to unlock the administrator tabs.
+iptv-vod is an IPTV relay with a web console, published as the Docker image [`hsuyelin/iptv-vod`](https://hub.docker.com/r/hsuyelin/iptv-vod) (`linux/amd64`, `linux/arm64`) and as binaries for Linux and macOS. It combines [iptv-rs](https://github.com/hsuyelin/iptv-rs), the relay, with [iptv-web](https://github.com/hsuyelin/iptv-web), the console.
 
 <strong>Want to get started?</strong><br/>
 Jump to <a href="#quick-start">Quick Start</a>.<br/>
 
 <strong>Something not working right?</strong><br/>
 Open an <a href="https://github.com/hsuyelin/iptv-vod/issues">Issue</a> on GitHub.<br/>
-
-<strong>Want to contribute?</strong><br/>
-Read <a href="#development">Development</a>, then open a pull request. Commits follow <a href="https://www.conventionalcommits.org">Conventional Commits</a>.<br/>
 
 <strong>Questions or ideas?</strong><br/>
 Join the community on <a href="http://t.me/iptvorganization">Telegram</a>.<br/>
@@ -38,107 +33,78 @@ Join the community on <a href="http://t.me/iptvorganization">Telegram</a>.<br/>
 
 ## Quick Start
 
-```bash
-git clone --recurse-submodules https://github.com/hsuyelin/iptv-vod.git
-cd iptv-vod
-scripts/one-click.sh      # or: auto | docker | docker-nginx | pm2 | local
-```
-
-Open `http://127.0.0.1:8787/` (`:8080` for `docker-nginx`). The playlist for players is `http://<host>:8787/list.m3u`.
-
-If you cloned without submodules, run `git submodule update --init --recursive`.
-
-## Deployment
-
-### Docker
-
-Run the published multi-architecture image (`linux/amd64`, `linux/arm64`):
+### Docker Compose
 
 ```bash
-cp .env.example .env     # set IPTV_IMAGE, IPTV_ADMIN_KEY and the rest
+curl -fLO https://raw.githubusercontent.com/hsuyelin/iptv-vod/main/docker-compose.yml
+curl -fL https://raw.githubusercontent.com/hsuyelin/iptv-vod/main/.env.example -o .env
+curl -fLO https://raw.githubusercontent.com/hsuyelin/iptv-vod/main/channels.yaml
 docker compose up -d
 ```
 
-Edit `channels.yaml` on the host. It is mounted read-only and reloaded without a restart. To build from source instead:
+Edit `.env` first if you want to change the port or set an administrator key.
 
-```bash
-docker compose -f docker-compose.build.yml --profile single up -d --build   # relay and console on :8787
-docker compose -f docker-compose.build.yml --profile split  up -d --build   # nginx on :8080 in front of the relay
-```
-
-### Local
-
-Requires Rust 1.96+ and Node.js 20+.
-
-```bash
-scripts/build.sh        # builds dist/
-scripts/run-local.sh    # cleans, rebuilds and runs; SKIP_BUILD=1 reuses dist/
-```
-
-### pm2
-
-```bash
-scripts/build.sh
-pm2 start deploy/pm2/ecosystem.config.cjs
-pm2 save && pm2 startup
-```
-
-### Nginx
-
-Run the relay on `127.0.0.1:8787`, copy `dist/web` to `/srv/iptv-vod/web`, install `deploy/nginx/iptv-vod.conf` as `/etc/nginx/conf.d/iptv-vod.conf`, then reload nginx. The config forwards `Host` and `X-Forwarded-*`, which the relay uses to write absolute segment URLs. Add TLS to the `server` block as usual.
-
-## Releases
-
-Pushing a tag such as `v1.0.0` starts two workflows. Both build on amd64 and arm64 runners in parallel and keep their build artifacts for 60 days.
-
-| Workflow | Result |
+| File | Purpose |
 |---|---|
-| `build-binaries.yml` | Linux and macOS packages (relay, WASM assets and console) on a GitHub release, with `SHA256SUMS` |
-| `docker.yml` | `<DOCKER_USERNAME>/<DOCKER_IMAGENAME>` on Docker Hub as one multi-architecture tag (`x.y.z`, `x.y`, `latest`) |
+| `docker-compose.yml` | Service definition: read-only root file system, health check, log rotation. Every value comes from `.env` |
+| `.env` (from `.env.example`) | Settings, listed below |
+| `channels.yaml` | Channel list, mounted read-only and reloaded without a restart |
 
-`docker-manual.yml` builds the image on demand from the Actions tab, with an optional tag and an option to skip the push. Set the repository secrets `DOCKER_USERNAME` and `DOCKER_PASSWORD` (an access token works) and `DOCKER_IMAGENAME` as a variable or a secret.
+### Docker
 
-`docker-verify.yml` only checks the image: from the Actions tab it builds, starts and health-checks the container on amd64 and arm64. It pushes nothing, needs no Docker Hub settings and keeps no artifacts.
+```bash
+docker run -d --name iptv-vod -p 8787:8787 \
+  -e IPTV_ADMIN_KEY=change-me-please \
+  hsuyelin/iptv-vod:latest
+```
+
+Add `-v "$PWD/channels.yaml:/app/channels.yaml:ro"` to use your own channel list.
+
+### Binary
+
+Download the package for your system from the [releases](https://github.com/hsuyelin/iptv-vod/releases) (`linux-amd64`, `linux-arm64`, `macos-amd64` or `macos-arm64`), check it against `SHA256SUMS`, then run:
+
+```bash
+tar -xzf iptv-vod-*-linux-amd64.tar.gz && cd iptv-vod-*-linux-amd64
+./iptv-rs --host 0.0.0.0 --port 8787 --channels channels.yaml --assets-dir assets --web-dir web
+```
+
+Open `http://127.0.0.1:8787/`. The playlist for players is `http://<host>:8787/list.m3u`.
 
 ## Configuration
 
+### Environment (`.env`)
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `IPTV_IMAGE` | `hsuyelin/iptv-vod:latest` | Image to run |
+| `IPTV_CONTAINER_NAME`, `IPTV_HOSTNAME` | `iptv-vod` | Container name and host name |
+| `RESTART_POLICY` | `unless-stopped` | Docker restart policy |
+| `NOFILE_LIMIT` | `65536` | Open file limit |
+| `TZ` | `Asia/Shanghai` | Time zone |
+| `SERVICE_NETWORK_NAME` | `iptv_net` | Docker network name |
+| `BIND_HOST` | `127.0.0.1` | Address to publish on; use `0.0.0.0` to reach it from other machines |
+| `IPTV_HOST_PORT` | `8787` | Published port |
+| `IPTV_CHANNELS_FILE` | `./channels.yaml` | Channel list on the host |
+| `IPTV_ADMIN_KEY` | empty | Administrator key; if empty, one is generated at every start and printed in `docker compose logs` |
+| `RUST_LOG` | `info` | Log filter, such as `debug` or `iptv_upstream=trace,warn` |
+| `IPTV_HEALTH_INTERVAL`, `IPTV_HEALTH_TIMEOUT`, `IPTV_HEALTH_RETRIES`, `IPTV_HEALTH_START_PERIOD` | `30s`, `5s`, `3`, `15s` | Health check timing |
+| `LOG_MAX_SIZE`, `LOG_MAX_FILE` | `10m`, `3` | Log rotation |
+
+### Binary options
+
 | Flag | Environment | Default | Meaning |
 |---|---|---|---|
-| `--host`, `--port` | | `127.0.0.1`, `8787` | Listen address (the scripts read `HOST`, `PORT`) |
-| `--channels` | | `/app/channels.yaml` | Channel list, reloaded on change (the scripts read `CHANNELS`) |
+| `--host`, `--port` | | `127.0.0.1`, `8787` | Listen address |
+| `--channels` | | `/app/channels.yaml` | Channel list, reloaded on change |
 | `--assets-dir` | `IPTV_ASSETS_DIR` | `./assets` | WASM assets, SHA-256 verified at start |
-| `--web-dir` | `IPTV_WEB_DIR` | off | Serve a built console from this directory |
+| `--web-dir` | `IPTV_WEB_DIR` | off | Serve the console from this directory |
 | `-v`, `-vv` | `RUST_LOG` | `info` | Log detail |
 | | `IPTV_ADMIN_KEY` | generated | Administrator key |
 
-### Administrator Mode
+### Administrator mode
 
-A standard visit shows the channel list only. Open `http://host:8787/<key>` to reveal the **Channels** and **Dashboard** tabs.
-
-- Set the key with `IPTV_ADMIN_KEY` (12 or more letters, digits, `-` or `_`). If it is unset, a 32-character key is generated at every start and printed once to standard error. Set the variable for managed deployments, since `docker compose logs` and `pm2 logs` keep the terminal output.
-- After 5 wrong keys a client is locked out for 15 minutes, doubling up to a day. 60 wrong keys from anyone within 10 minutes lock all attempts for 10 minutes.
-- The key is part of the address and lands in browser history. The relay and the bundled nginx configs keep such addresses out of their logs.
-
-### Logs
-
-The relay logs with `tracing` to standard error: time (UTC), level, thread, module, source file and line, message and fields.
-
-```
-2026-10-09T08:05:36.103794Z  WARN tokio-rt-worker iptv_server::app: crates/iptv-server/src/app.rs:205: request rejected id=2 method=POST path=/admin/verify status=403 elapsed_ms=302
-```
-
-Run with `-v` for debug, `-vv` for trace, or set `RUST_LOG`, for example `RUST_LOG=iptv_upstream=trace,warn`. Keys, tokens and guesses are never logged.
-
-## Development
-
-```bash
-git submodule update --init --remote --merge   # newest main of each submodule
-
-cd submodules/iptv-rs  && just all    # fmt, clippy, test, doc, deps, names, cargo-deny
-cd submodules/iptv-web && just all    # lint, typecheck, test, build, names
-```
-
-Install the tools with `brew install just cargo-deny`. After changing a submodule, push it first, then commit the bumped pointers here.
+A standard visit shows the channel list only. Open `http://host:8787/<key>` to reveal the **Channels** and **Dashboard** tabs. The key needs 12 or more letters, digits, `-` or `_`. After 5 wrong keys a client is locked out for 15 minutes, and the lockout grows up to a day.
 
 ## Acknowledgements
 
