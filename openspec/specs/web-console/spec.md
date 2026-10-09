@@ -77,10 +77,14 @@ imperative surface is the hook that attaches the HLS engine to the `<video>` ele
 
 ### Requirement: Languages
 The console SHALL be available in Simplified Chinese (`zh-CN`), Traditional Chinese
-(`zh-TW`) and English (`en`). The first visit SHALL follow the browser's language (any
-`zh` tag with a Hant script or the TW, HK or MO region maps to `zh-TW`, other `zh` tags to
-`zh-CN`, `en` tags to `en`); a missing or unsupported browser language SHALL give `zh-CN`. The language SHALL be chosen from a drop-down menu operable by keyboard, and an explicit choice SHALL be kept across visits. Every
-message key SHALL exist in all three languages with the same placeholders.
+(`zh-TW`) and English (`en`), chosen from a keyboard-operable drop-down. An explicit
+choice SHALL be kept across visits, and every message key SHALL exist in all three
+languages with the same placeholders.
+
+#### Scenario: First visit
+- **WHEN** a visitor with no saved choice arrives
+- **THEN** a `zh` tag with a Hant script or the TW, HK or MO region gives `zh-TW`, other
+  `zh` tags give `zh-CN`, and `en` tags give `en`
 
 #### Scenario: Default language
 - **WHEN** the browser reports no language, or none the console supports
@@ -101,10 +105,13 @@ remembered, and the chip filters SHALL wrap instead of scrolling sideways.
 - **THEN** the same channels are shown as list lines, the selected one labelled as on air
 
 ### Requirement: Calm dark appearance and responsive layout
-The console SHALL use a dark theme whose accent is a softened red (saturation at most 70%)
-with white text on it meeting WCAG AA, glass-like translucent surfaces and rounded
-corners. The layout SHALL work from 360 px phones to wide desktops: the page SHALL NOT
-scroll sideways and no control SHALL be covered by another element.
+The console SHALL use a dark theme with a softened red accent, translucent glass-like
+surfaces and rounded corners, and SHALL work from 360 px phones to wide desktops without
+sideways page scrolling or covered controls.
+
+#### Scenario: Accent
+- **WHEN** the design tokens are checked
+- **THEN** the accent's saturation is at most 70% and white text on it meets WCAG AA
 
 #### Scenario: Layout check
 - **WHEN** the Playwright layout check runs at phone, tablet and desktop sizes in each
@@ -136,19 +143,36 @@ or overlap its audio. Closing the floating window SHALL stop the stream.
 
 ### Requirement: Dashboard page
 The console SHALL have a dashboard page, reachable by a link and by the address
-`#/dashboard`, showing whether the relay is online, its uptime, the time of the last
-reading, the channel file it reads, its counters (channels, playlists served, segment
-requests, streamed, rejected and failed, upstream calls and queue), the segment error
-rate, a chart of segments streamed over the latest readings, and a list of what needs
-attention: channels currently showing the notice stream (by display name) and a broken
-channel file. The page SHALL say so when nothing needs attention.
+`#/dashboard`, that shows the relay's state, its counters, a chart of recent throughput
+and what needs attention.
+
+#### Scenario: Overview
+- **WHEN** the dashboard is open and `/health` answers
+- **THEN** it shows that the relay is online, its uptime, the time of the last reading,
+  the channel file in use, the segment error rate, and the counters for channels,
+  playlists served, segment requests, streamed, rejected and failed, upstream calls and
+  upstream queue
+
+#### Scenario: Throughput chart
+- **WHEN** at least two health readings have been collected
+- **THEN** a chart shows the segments streamed between consecutive readings, otherwise a
+  note says readings are being collected
 
 #### Scenario: Unavailable channel
 - **WHEN** `/health` lists a channel as showing the notice stream
-- **THEN** the dashboard names that channel under "Needs attention"
+- **THEN** the dashboard names that channel under "Needs attention", and a broken channel
+  file is reported there too
+
+#### Scenario: All clear
+- **WHEN** no channel is unavailable and the channel file loads
+- **THEN** the dashboard says nothing needs attention
 
 ### Requirement: Page title
 The document title SHALL be "IPTV" in every language and on every page.
+
+#### Scenario: Title after a language change
+- **WHEN** the user switches language or moves between the channels and dashboard pages
+- **THEN** the document title remains "IPTV"
 
 ### Requirement: Picture placeholder
 A picture with no address, or one that fails to load, SHALL be replaced by one shared
