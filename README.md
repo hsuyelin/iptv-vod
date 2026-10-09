@@ -1,8 +1,3 @@
-<h1 align="center">iptv-vod</h1>
-<h3 align="center">The IPTV relay and web console, ready to deploy</h3>
-
----
-
 <p align="center">
 <img alt="iptv-vod" src="branding/banner.svg" width="560"/>
 <br/>
@@ -19,15 +14,6 @@
 ---
 
 iptv-vod is an IPTV relay with a web console, published as the Docker image [`hsuyelin/iptv-vod`](https://hub.docker.com/r/hsuyelin/iptv-vod) (`linux/amd64`, `linux/arm64`) and as binaries for Linux and macOS. It combines [iptv-rs](https://github.com/hsuyelin/iptv-rs), the relay, with [iptv-web](https://github.com/hsuyelin/iptv-web), the console.
-
-<strong>Want to get started?</strong><br/>
-Jump to <a href="#quick-start">Quick Start</a>.<br/>
-
-<strong>Something not working right?</strong><br/>
-Open an <a href="https://github.com/hsuyelin/iptv-vod/issues">Issue</a> on GitHub.<br/>
-
-<strong>Questions or ideas?</strong><br/>
-Join the community on <a href="http://t.me/iptvorganization">Telegram</a>.<br/>
 
 ---
 
