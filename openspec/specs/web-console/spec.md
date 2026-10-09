@@ -79,11 +79,15 @@ imperative surface is the hook that attaches the HLS engine to the `<video>` ele
 The console SHALL be available in Simplified Chinese (`zh-CN`), Traditional Chinese
 (`zh-TW`) and English (`en`). The first visit SHALL follow the browser's language (any
 `zh` tag with a Hant script or the TW, HK or MO region maps to `zh-TW`, other `zh` tags to
-`zh-CN`, everything else to `en`); an explicit choice SHALL be kept across visits. Every
+`zh-CN`, `en` tags to `en`); a missing or unsupported browser language SHALL give `zh-CN`. The language SHALL be chosen from a drop-down menu operable by keyboard, and an explicit choice SHALL be kept across visits. Every
 message key SHALL exist in all three languages with the same placeholders.
 
+#### Scenario: Default language
+- **WHEN** the browser reports no language, or none the console supports
+- **THEN** Simplified Chinese is used
+
 #### Scenario: Switch language
-- **WHEN** the user picks 繁體中文
+- **WHEN** the user opens the language drop-down and picks 繁體中文
 - **THEN** all console text, the document language and number formats change at once,
   with no reload, and the choice is remembered
 
@@ -129,3 +133,27 @@ or overlap its audio. Closing the floating window SHALL stop the stream.
 #### Scenario: Scroll away and back
 - **WHEN** the player leaves the view and later returns
 - **THEN** the same video element floats and then returns, without restarting playback
+
+### Requirement: Dashboard page
+The console SHALL have a dashboard page, reachable by a link and by the address
+`#/dashboard`, showing whether the relay is online, its uptime, the time of the last
+reading, the channel file it reads, its counters (channels, playlists served, segment
+requests, streamed, rejected and failed, upstream calls and queue), the segment error
+rate, a chart of segments streamed over the latest readings, and a list of what needs
+attention: channels currently showing the notice stream (by display name) and a broken
+channel file. The page SHALL say so when nothing needs attention.
+
+#### Scenario: Unavailable channel
+- **WHEN** `/health` lists a channel as showing the notice stream
+- **THEN** the dashboard names that channel under "Needs attention"
+
+### Requirement: Page title
+The document title SHALL be "IPTV" in every language and on every page.
+
+### Requirement: Picture placeholder
+A picture with no address, or one that fails to load, SHALL be replaced by one shared
+placeholder icon instead of a broken-image mark.
+
+#### Scenario: Failed logo
+- **WHEN** a channel logo cannot be loaded
+- **THEN** the channel tile shows the placeholder icon in its place
