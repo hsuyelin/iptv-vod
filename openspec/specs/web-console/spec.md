@@ -107,3 +107,25 @@ scroll sideways and no control SHALL be covered by another element.
   language and in senior mode
 - **THEN** it reports no sideways page overflow, no control outside the viewport and no
   control covered by another element
+
+### Requirement: Paged channel list
+The console SHALL show the channel list in pages (24 channels per page, 10 in senior
+mode), in display order, with previous and next controls and page numbers. A group that
+spans pages SHALL repeat its heading. Changing the filter or the group SHALL return to the
+first page, and the channel on air SHALL keep playing when the page changes.
+
+#### Scenario: Next page
+- **WHEN** 60 channels match and the user presses next
+- **THEN** channels 25 to 48 of the display order are shown and the previous control is
+  enabled
+
+### Requirement: Floating player
+While a channel is playing and the player has scrolled out of view, the console SHALL show
+the player as a floating window with controls to return to the player and to close it,
+and SHALL return it to its place when the player is visible again. There SHALL be exactly
+one video element and one playback engine at all times, so the stream cannot play twice
+or overlap its audio. Closing the floating window SHALL stop the stream.
+
+#### Scenario: Scroll away and back
+- **WHEN** the player leaves the view and later returns
+- **THEN** the same video element floats and then returns, without restarting playback
