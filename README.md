@@ -11,7 +11,6 @@ Git submodules:
 | `Dockerfile`, `docker-compose.yml`, `docker/` | | Container images and compose profiles. |
 | `deploy/pm2/`, `deploy/nginx/` | | pm2 process file, host nginx reverse proxy. |
 | `scripts/` | | Build, local run and one-click scripts. |
-| `openspec/` | | Boundary constraints and change history. |
 
 The two sides meet only at the relay's HTTP routes: `/list.m3u`, `/live/{ch}.m3u8`,
 `/segment/{ch}/{id}.ts`, `/channels`, `/health`. The WASM assets in `submodules/iptv-rs/assets/` are
