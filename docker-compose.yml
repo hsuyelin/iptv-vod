@@ -1,0 +1,57 @@
+# Quick start from the published image:
+#   cp .env.example .env     # then edit .env
+#   docker compose up -d
+# To build from source instead, use docker-compose.build.yml.
+services:
+    iptv:
+        image: "${IPTV_IMAGE:?IPTV_IMAGE is required}"
+        container_name: "${IPTV_CONTAINER_NAME}"
+        hostname: "${IPTV_HOSTNAME}"
+        restart: "${RESTART_POLICY}"
+
+        ulimits:
+            nofile:
+                soft: ${NOFILE_LIMIT}
+                hard: ${NOFILE_LIMIT}
+
+        ports:
+            - "${BIND_HOST}:${IPTV_HOST_PORT}:8787"
+
+        volumes:
+            - "${IPTV_CHANNELS_FILE}:/app/channels.yaml:ro"
+
+        environment:
+            TZ: "${TZ}"
+            RUST_LOG: "${RUST_LOG}"
+            IPTV_ADMIN_KEY: "${IPTV_ADMIN_KEY}"
+
+        read_only: true
+        tmpfs:
+            - /tmp
+        cap_drop:
+            - ALL
+        security_opt:
+            - no-new-privileges:true
+
+        healthcheck:
+            test:
+                - CMD
+                - /app/iptv-rs
+                - --healthcheck
+            interval: "${IPTV_HEALTH_INTERVAL}"
+            timeout: "${IPTV_HEALTH_TIMEOUT}"
+            retries: ${IPTV_HEALTH_RETRIES}
+            start_period: "${IPTV_HEALTH_START_PERIOD}"
+
+        logging:
+            driver: json-file
+            options:
+                max-size: "${LOG_MAX_SIZE}"
+                max-file: "${LOG_MAX_FILE}"
+
+        networks:
+            - service_net
+
+networks:
+    service_net:
+        name: "${SERVICE_NETWORK_NAME}"

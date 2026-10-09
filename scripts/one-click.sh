@@ -15,10 +15,10 @@ fi
 
 case "$mode" in
   docker)
-    docker compose --profile single up -d --build
+    docker compose -f docker-compose.build.yml --profile single up -d --build
     echo "console: http://127.0.0.1:${PORT}/" ;;
   docker-nginx)
-    docker compose --profile split up -d --build
+    docker compose -f docker-compose.build.yml --profile split up -d --build
     echo "console: http://127.0.0.1:${WEB_PORT:-8080}/" ;;
   pm2)
     need pm2

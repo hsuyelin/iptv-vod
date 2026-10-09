@@ -1,5 +1,5 @@
-# docker compose --profile single up -d --build   # relay + console on :8787
-# docker compose --profile split  up -d --build   # nginx on :8080 in front of the relay
+# docker compose -f docker-compose.build.yml --profile single up -d --build   # relay + console on :8787
+# docker compose -f docker-compose.build.yml --profile split  up -d --build   # nginx on :8080 in front of the relay
 # Set IPTV_ADMIN_KEY (12+ letters, digits, - or _) to choose the administrator key; without it
 # the relay generates one and prints it to its log (docker compose logs).
 x-channels: &channels ./channels.yaml:/app/channels.yaml:ro
