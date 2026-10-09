@@ -73,6 +73,7 @@ Open `http://127.0.0.1:8787/`. The playlist for players is `http://<host>:8787/l
 | `IPTV_HOST_PORT` | `8787` | Published port |
 | `IPTV_CHANNELS_FILE` | `./app/channels.yaml` | Channel list on the host |
 | `IPTV_ADMIN_KEY` | empty | Administrator key; if empty, one is generated at every start and printed in `docker compose logs` |
+| `IPTV_COMPAT` | `on` | Lighter stream for iOS before 16 (needs the ffmpeg the image carries); `off` switches it off |
 | `RUST_LOG` | `info` | Log filter, such as `debug` or `iptv_upstream=trace,warn` |
 | `IPTV_HEALTH_INTERVAL`, `IPTV_HEALTH_TIMEOUT`, `IPTV_HEALTH_RETRIES`, `IPTV_HEALTH_START_PERIOD` | `30s`, `5s`, `3`, `15s` | Health check timing |
 | `LOG_MAX_SIZE`, `LOG_MAX_FILE` | `10m`, `3` | Log rotation |
@@ -90,13 +91,9 @@ Open `http://127.0.0.1:8787/`. The playlist for players is `http://<host>:8787/l
 
 ### Old iPhones and iPads
 
-The normal stream is 1080p with B-frames, which some older Apple devices play as a slideshow with sound, or not at all. The `compat` image adds ffmpeg and serves a lighter stream (720p, no B-frames, a keyframe every 2 seconds) to iOS before 16 automatically:
+The normal stream is 1080p with B-frames, which some older Apple devices play as a slideshow with sound, or not at all. The Docker image carries ffmpeg and, by default, serves iOS before 16 a lighter stream (720p, no B-frames, a keyframe every 2 seconds) automatically. To switch it off, set `IPTV_COMPAT=off` in `.env`.
 
-```bash
-docker compose -f docker-compose.build.yml --profile compat up -d --build
-```
-
-To try it on one device first, open `http://<host>:8787/?compat=1`; `?compat=0` turns it off again. The image includes an ffmpeg with libx264, which is GPL licensed. A binary run can use any ffmpeg with libx264: start it with `--compat-ffmpeg /path/to/ffmpeg`.
+To try it on one device first, open `http://<host>:8787/?compat=1`; `?compat=0` turns it off again. The binary needs an ffmpeg with libx264: `scripts/run-local.sh --compat` finds one on your `PATH` (or at `FFMPEG`), and `--compat-ffmpeg /path/to/ffmpeg` sets it directly. The ffmpeg in the image includes libx264, which is GPL licensed.
 
 ### Administrator mode
 

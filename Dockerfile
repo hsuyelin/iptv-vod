@@ -3,7 +3,10 @@
 #   docker build --target all   -t iptv-vod       .   # relay + console in one image (default)
 #   docker build --target relay -t iptv-vod-relay .   # relay only
 #   docker build --target web   -t iptv-vod-web   .   # nginx: console + reverse proxy
-#   docker build --target compat -t iptv-vod-compat .  # like `all`, plus ffmpeg for ?profile=compat
+#
+# The `relay` and `all` images carry a static ffmpeg and offer the lighter stream for old Apple
+# devices (?profile=compat) by default; run them with IPTV_COMPAT=off to switch it off. The
+# ffmpeg build includes libx264, which is GPL licensed.
 
 FROM node:24-bookworm-slim AS web-build
 WORKDIR /web
@@ -19,11 +22,15 @@ WORKDIR /src
 COPY submodules/iptv-rs/ ./
 RUN cargo build --release --locked -p iptv-server
 
-# The runtime image is `scratch` with a single layer: the binary, the shared libraries and
+# The runtime image is `scratch` with a single layer: the binary, ffmpeg, the shared libraries and
 # loader it needs, CA certificates, a minimal name-service configuration, the WASM assets
 # and the channel list. Assets stay outside the binary and are verified at start.
+# A static ffmpeg: no libraries to copy, nothing to install, and it runs from `scratch`.
+FROM mwader/static-ffmpeg:7.1.1 AS ffmpeg
+
 FROM relay-build AS rootfs
 COPY channels.yaml /root-fs/app/channels.yaml
+COPY --from=ffmpeg /ffmpeg /root-fs/app/ffmpeg
 RUN set -eux; \
   mkdir -p /root-fs/tmp /root-fs/etc/ssl/certs; \
   cp /src/target/release/iptv-rs /root-fs/app/iptv-rs; \
@@ -50,6 +57,7 @@ COPY --from=web-build /web/dist /root-fs/app/web
 # Relay only.
 FROM scratch AS relay
 COPY --from=rootfs /root-fs /
+ENV IPTV_COMPAT_FFMPEG=/app/ffmpeg
 EXPOSE 8787
 ENTRYPOINT ["/app/iptv-rs"]
 CMD ["--host", "0.0.0.0", "--port", "8787", "--channels", "/app/channels.yaml", "--assets-dir", "/app/assets"]
@@ -63,18 +71,6 @@ EXPOSE 80
 # Relay serving the console itself (default target).
 FROM scratch AS all
 COPY --from=rootfs-all /root-fs /
-EXPOSE 8787
-ENTRYPOINT ["/app/iptv-rs"]
-CMD ["--host", "0.0.0.0", "--port", "8787", "--channels", "/app/channels.yaml", "--assets-dir", "/app/assets", "--web-dir", "/app/web"]
-
-# Like `all`, plus a static ffmpeg, so that `?profile=compat` can serve old Apple devices a
-# lighter stream (720p Main profile, no B-frames, a keyframe at least every 2 s). The ffmpeg
-# build includes libx264, which is GPL: use this image only where that suits you.
-FROM mwader/static-ffmpeg:7.1.1 AS ffmpeg
-
-FROM scratch AS compat
-COPY --from=rootfs-all /root-fs /
-COPY --from=ffmpeg /ffmpeg /app/ffmpeg
 ENV IPTV_COMPAT_FFMPEG=/app/ffmpeg
 EXPOSE 8787
 ENTRYPOINT ["/app/iptv-rs"]

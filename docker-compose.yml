@@ -24,6 +24,7 @@ services:
             TZ: "${TZ}"
             RUST_LOG: "${RUST_LOG}"
             IPTV_ADMIN_KEY: "${IPTV_ADMIN_KEY}"
+            IPTV_COMPAT: "${IPTV_COMPAT:-on}"
 
         read_only: true
         tmpfs:

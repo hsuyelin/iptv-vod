@@ -1,7 +1,7 @@
 # docker compose -f docker-compose.build.yml --profile single up -d --build   # relay + console on :8787
 # docker compose -f docker-compose.build.yml --profile split  up -d --build   # nginx on :8080 (HTTP) and :8443 (HTTPS) in front of the relay
-# docker compose -f docker-compose.build.yml --profile compat up -d --build   # relay + console + the lighter stream for old Apple devices
 # The split profile needs ./certs/fullchain.pem and ./certs/privkey.pem; run scripts/self-signed-cert.sh for a test pair.
+# The images offer the lighter stream for old Apple devices; IPTV_COMPAT=off switches it off.
 # Set IPTV_ADMIN_KEY (12+ letters, digits, - or _) to choose the administrator key; without it
 # the relay generates one and prints it to its log (docker compose logs).
 x-channels: &channels ./channels.yaml:/app/channels.yaml:ro
@@ -15,16 +15,7 @@ services:
     volumes: [*channels]
     environment:
       IPTV_ADMIN_KEY: ${IPTV_ADMIN_KEY:-}
-    restart: unless-stopped
-
-  iptv-compat:
-    profiles: [compat]
-    build: { context: ., target: compat }
-    image: iptv-vod-compat
-    ports: ["${PORT:-8787}:8787"]
-    volumes: [*channels]
-    environment:
-      IPTV_ADMIN_KEY: ${IPTV_ADMIN_KEY:-}
+      IPTV_COMPAT: ${IPTV_COMPAT:-on}
     restart: unless-stopped
 
   relay:
@@ -35,6 +26,7 @@ services:
     volumes: [*channels]
     environment:
       IPTV_ADMIN_KEY: ${IPTV_ADMIN_KEY:-}
+      IPTV_COMPAT: ${IPTV_COMPAT:-on}
     restart: unless-stopped
 
   web:

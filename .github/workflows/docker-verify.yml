@@ -52,6 +52,22 @@ jobs:
           exit 1
       - name: Playlist
         run: curl --fail --silent --show-error --max-time 10 http://127.0.0.1:8787/list.m3u | head -n 3
+      # The lighter stream needs the ffmpeg in the image to run under the same restrictions as
+      # the relay: a read-only file system, no capabilities, no new privileges.
+      - name: Lighter stream is on
+        run: |
+          curl --fail --silent --show-error --max-time 10 http://127.0.0.1:8787/health > health.json
+          grep -q '"compat":true' health.json
+      - name: ffmpeg runs in the container
+        run: |
+          docker exec iptv /app/ffmpeg -hide_banner -encoders > encoders.txt
+          grep -q libx264 encoders.txt
+          docker exec iptv /app/ffmpeg -v error -f lavfi -i testsrc2=size=1920x1080:rate=25 -t 1 \
+            -c:v libx264 -bf 3 -f mpegts - > source.ts
+          docker exec -i iptv /app/ffmpeg -v error -f mpegts -i pipe:0 -vf "scale=-2:'min(720,ih)'" \
+            -c:v libx264 -profile:v main -level 3.1 -bf 0 -g 50 -f mpegts - < source.ts > encoded.ts
+          test "$(head -c 1 encoded.ts | od -An -tx1 | tr -d ' ')" = 47
+          test "$(stat -c %s encoded.ts)" -gt 1000
       - name: Logs
         if: failure()
         run: docker logs iptv
