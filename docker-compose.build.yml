@@ -16,6 +16,8 @@ services:
     environment:
       IPTV_ADMIN_KEY: ${IPTV_ADMIN_KEY:-}
       IPTV_COMPAT: ${IPTV_COMPAT:-on}
+      IPTV_COMPAT_HEIGHT: ${IPTV_COMPAT_HEIGHT:-720}
+      IPTV_COMPAT_PRESET: ${IPTV_COMPAT_PRESET:-veryfast}
     restart: unless-stopped
 
   relay:
@@ -27,6 +29,8 @@ services:
     environment:
       IPTV_ADMIN_KEY: ${IPTV_ADMIN_KEY:-}
       IPTV_COMPAT: ${IPTV_COMPAT:-on}
+      IPTV_COMPAT_HEIGHT: ${IPTV_COMPAT_HEIGHT:-720}
+      IPTV_COMPAT_PRESET: ${IPTV_COMPAT_PRESET:-veryfast}
     restart: unless-stopped
 
   web:
